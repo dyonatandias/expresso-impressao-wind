@@ -1,0 +1,39 @@
+## .NET
+bin/
+obj/
+publish/
+dist/
+release/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+
+## NuGet
+**/[Pp]ackages/*
+*.nupkg
+
+## IDE
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Installer output
+installer/output/
+installer/dependencies/
+
+## Logs
+*.log

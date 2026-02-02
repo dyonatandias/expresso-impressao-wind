@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>ExpressoDeliveryPrintClient</AssemblyName>
+    <Version>2.1.0</Version>
+    <Authors>Agência Expresso</Authors>
+    <Product>Expresso Delivery Print Client</Product>
+    <Description>Cliente de impressão para Windows - Sistema Delivery 2.0 (Updated 01/02/2026 - v2.1.0)</Description>
+    <Copyright>Copyright © 2026 Agência Expresso</Copyright>
+    <FileVersion>2.1.0.0</FileVersion>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app-icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="app-icon.ico">
+      <LogicalName>app-icon.ico</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
