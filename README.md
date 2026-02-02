@@ -1,142 +1,149 @@
 # Expresso Delivery Print Client
 
-Cliente de impressao termica para Windows do sistema [Expresso Delivery](https://delivery2.agenciaexpresso.com.br).
+Open-source thermal print client for Windows. Connects to the Expresso Delivery system and automatically prints orders on thermal printers.
 
-Aplicativo C# .NET 6 WinForms que conecta a impressoras termicas (58mm, 76mm, 80mm) via API REST, recebendo jobs de impressao automaticamente por polling.
+**Version:** 2.1.0
+**License:** MIT
+**Platform:** Windows 10+ (64-bit)
+**Framework:** .NET 6 (WinForms)
 
-## Funcionalidades
+---
 
-- **Polling automatico** - Busca jobs de impressao no servidor a cada N segundos
-- **Multiplas impressoras** - Suporte a qualquer impressora termica instalada no Windows
-- **Circuit breaker** - Pausa apos 5 falhas consecutivas (cooldown 30s)
-- **Config persistente** - Credenciais salvas em `%APPDATA%\DeliveryPrintClient\`
-- **Logs remotos** - Erros e estatisticas enviados ao servidor
-- **Single instance** - Impede multiplas instancias simultaneas (Mutex)
-- **Verificacao de atualizacao** - Notifica quando ha nova versao disponivel
-- **Icone personalizado** - Logo embarcado como recurso no assembly
-- **Largura dinamica** - Suporte a papeis de 58mm, 76mm e 80mm
-- **Copias multiplas** - Configuracao de copias padrao com delay entre impressoes
-- **Tray icon** - Minimiza para a bandeja do sistema
-- **Auto-start** - Gerenciado pelo instalador Inno Setup
+## Features
 
-## Requisitos
+- Automatic order polling and printing (every 2s)
+- Dynamic paper width support (58mm / 76mm / 80mm)
+- Authenticated API (X-API-Key / X-Secret-Key)
+- Circuit breaker (5 failures = 30s cooldown)
+- Auto-update support
+- System tray operation (minimize to tray)
+- Daily log rotation with synchronous writes
+- ESC/POS thermal printer support (USB, LPT, Network)
+- Single-file standalone executable (no .NET install needed on target)
 
-### Para executar (usuario final)
-- Windows 10/11 64-bit
-- Impressora termica instalada
-- Credenciais de API (obtidas no painel admin)
+---
 
-### Para compilar (desenvolvedor)
-- [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) ou superior
-- Windows 10/11 (para WinForms)
-- Ou Linux com cross-compilation (`dotnet publish -r win-x64`)
+## Quick Start
 
-## Compilacao
+### Option 1: Download Pre-built Executable
 
-### No Windows (recomendado)
+Download the latest release from the admin panel:
+**Admin > Impressoras > Windows Clients > Download**
 
-```bash
-# Restaurar dependencias
-dotnet restore
+### Option 2: Build from Source
 
-# Build
-dotnet build -c Release
+**Requirements:** .NET 6 SDK ([download](https://dotnet.microsoft.com/download/dotnet/6.0))
 
-# Publicar (single-file, self-contained)
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+```cmd
+cd windows-print-client-dotnet
+COMPILAR_TUDO.bat
 ```
 
-O executavel sera gerado em `bin/Release/net6.0-windows/win-x64/publish/`.
+Output: `ExpressoDeliveryPrintClient.exe` in the same directory.
 
-### No Linux (cross-compilation)
+### Configuration
+
+1. Run `ExpressoDeliveryPrintClient.exe`
+2. Fill in:
+   - **API URL**: `https://your-domain.com`
+   - **API Key**: (from Admin > Impressoras > Windows Clients)
+   - **Secret Key**: (from Admin > Impressoras > Windows Clients)
+   - **Printer**: Select from list
+3. Click **Save**, then **Test**
+
+---
+
+## Project Structure
+
+```
+windows-print-client-dotnet/
+├── DeliveryPrintClient.csproj    # .NET 6 project
+├── Program.cs                    # Entry point
+├── Models/
+│   └── Config.cs                 # Data models (PrintJob, Config, ApiResponse)
+├── Services/
+│   ├── ApiService.cs             # HTTP client with auth + circuit breaker
+│   ├── ConfigService.cs          # JSON config persistence
+│   ├── LogService.cs             # Daily rotating log with sync writes
+│   ├── PrinterService.cs         # Windows printing (dynamic paper size)
+│   ├── StartupService.cs         # Windows auto-start setup
+│   ├── UpdateService.cs          # Auto-update mechanism
+│   ├── InstallerService.cs       # Installation helpers
+│   └── HealthCheckService.cs     # API health monitoring
+├── Forms/
+│   └── MainForm.cs               # WinForms GUI
+├── installer/
+│   └── setup.iss                 # InnoSetup installer script
+├── COMPILAR_TUDO.bat             # Build script (Windows)
+├── LEIA-ME.md                    # Documentation (Portuguese)
+├── CHANGELOG_v2.0.0.md           # Changelog
+└── LICENSE.txt                   # MIT License
+```
+
+---
+
+## How It Works
+
+```
+Delivery System → Order created → Print job queued
+                                        ↓
+            Windows Client (this) ← Polls every 2s
+                                        ↓
+                              Sends to thermal printer
+                                        ↓
+                          Reports status back to server
+```
+
+---
+
+## Build (Manual)
 
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true \
-  /p:PublishSingleFile=true \
-  /p:IncludeNativeLibrariesForSelfExtract=true \
-  -o ./publish
+  -p:PublishSingleFile=true \
+  -p:IncludeNativeLibrariesForSelfExtract=true \
+  -p:PublishTrimmed=false
 ```
 
-> Nota: Cross-compilacao do Linux nao embute o icone no .exe (NETSDK1074). O icone e carregado em runtime via recurso embarcado.
+**Dependencies:** Newtonsoft.Json 13.0.3, System.Drawing.Common 7.0.0
 
-## Instalador (Inno Setup)
+---
 
-O projeto inclui um script Inno Setup (`installer/setup.iss`) que gera um instalador profissional com:
-- Assistente de instalacao em portugues
-- Atalhos na area de trabalho e menu iniciar
-- Auto-start com Windows (opcional)
-- Desinstalador
+## Supported Printers
 
-### Compilar o instalador
+Any Windows-recognized thermal printer:
+- USB (e.g., Epson TM-T20, Bematech MP-4200)
+- Parallel (LPT)
+- Network (TCP/IP, shared)
 
-**No Windows:**
-1. Instale o [Inno Setup 6](https://jrsoftware.org/isdl.php)
-2. Abra `installer/setup.iss` no Inno Setup
-3. Compile (Ctrl+F9)
+Supported paper widths: **58mm**, **76mm**, **80mm**
 
-**No Linux (via Wine):**
-```bash
-wine "C:\Program Files\Inno Setup 6\ISCC.exe" installer/setup.iss
-```
+---
 
-## Estrutura do Projeto
+## Changelog
 
-```
-├── Program.cs                 # Entry point + single instance (Mutex)
-├── DeliveryPrintClient.csproj # Projeto .NET 6 WinForms
-├── app-icon.ico               # Icone da aplicacao (embarcado como recurso)
-├── app.manifest               # Manifesto Windows (DPI awareness)
-│
-├── Forms/
-│   └── MainForm.cs            # UI principal (config, status, logs)
-│
-├── Models/
-│   └── Config.cs              # Modelos de configuracao e respostas API
-│
-├── Services/
-│   ├── ApiService.cs          # Cliente HTTP com circuit breaker
-│   ├── ConfigService.cs       # Persistencia em %APPDATA% (JSON)
-│   ├── HealthCheckService.cs  # Diagnostico de conectividade
-│   ├── InstallerService.cs    # Carregamento de icone do assembly
-│   ├── LogService.cs          # Logs em arquivo + buffer remoto
-│   ├── PrinterService.cs      # Impressao via System.Drawing.Printing
-│   ├── StartupService.cs      # Verificacao de auto-start (read-only)
-│   └── UpdateService.cs       # Verificacao de versao no servidor
-│
-├── installer/
-│   └── setup.iss              # Script Inno Setup (instalador)
-│
-└── logoparaapp/               # Logos para o header da aplicacao
-```
+### v2.1.0 (02/02/2026)
+- Auto-update support
+- Installer service
+- Source zip distribution
 
-## Configuracao
+### v2.0.0 (01/02/2026)
+- Authenticated API (X-API-Key / X-Secret-Key)
+- Dynamic paper width (58/76/80mm)
+- Circuit breaker (5 failures → 30s cooldown)
+- Daily log rotation + synchronous writes
+- GDI/HICON resource leak fixes
+- 7 new fields in PrintJob model
 
-Na primeira execucao, configure no aplicativo:
+### v1.5.6 (19/11/2025)
+- Win32Exception fix
+- Local config and logs
+- Multi-delivery support
 
-1. **URL da API** - Endereco do servidor (ex: `https://delivery2.agenciaexpresso.com.br`)
-2. **API Key** - Chave de autenticacao (gerada no painel admin)
-3. **Secret Key** - Chave secreta (gerada no painel admin)
-4. **Impressora** - Selecione a impressora termica instalada
-5. Clique em **Salvar**
+---
 
-As credenciais sao salvas em `%APPDATA%\DeliveryPrintClient\config.json`.
+## License
 
-## API Endpoints Utilizados
+MIT License - See [LICENSE.txt](LICENSE.txt)
 
-| Metodo | Endpoint | Descricao |
-|--------|----------|-----------|
-| POST | `/api/windows-clients/auth` | Autenticacao com API Key + Secret Key |
-| GET | `/api/windows-clients/jobs` | Buscar jobs pendentes de impressao |
-| POST | `/api/windows-clients/jobs/[id]/complete` | Marcar job como impresso |
-| POST | `/api/windows-clients/jobs/[id]/fail` | Reportar falha na impressao |
-| GET | `/api/windows-clients/check-update` | Verificar atualizacao disponivel |
-| POST | `/api/windows-clients/logs` | Enviar logs e stats ao servidor |
-| GET | `/api/health` | Health check da API |
-
-## Licenca
-
-MIT License - veja [LICENSE.txt](LICENSE.txt)
-
-## Autor
-
-[Agencia Expresso](https://delivery2.agenciaexpresso.com.br)
+Copyright (c) 2025-2026 Agencia Expresso
