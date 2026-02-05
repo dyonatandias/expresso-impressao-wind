@@ -5,7 +5,7 @@ cls
 
 echo.
 echo ========================================
-echo   EXPRESSO DELIVERY PRINT CLIENT v2.0.0
+echo   EXPRESSO DELIVERY PRINT CLIENT v2.1.0
 echo   Compilacao Automatica
 echo ========================================
 echo.

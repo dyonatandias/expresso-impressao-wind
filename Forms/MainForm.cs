@@ -15,7 +15,7 @@ namespace DeliveryPrintClient.Forms
     {
         private readonly AppConfig _config;
         private readonly ApiService _apiService;
-        private readonly HealthCheckService _healthCheckService;
+        private HealthCheckService _healthCheckService;
         private readonly UpdateService _updateService;
         private PrinterService? _printerService;
         private System.Threading.Timer? _pollingTimer;
@@ -796,6 +796,9 @@ namespace DeliveryPrintClient.Forms
                 _config.AutoStart = chkAutoStart.Checked;
 
                 ConfigService.Save(_config);
+
+                // Recriar HealthCheckService com a nova URL (string é cópia, não referência)
+                _healthCheckService = new HealthCheckService(_config.ApiUrl);
 
                 // Nota: Auto-start é gerenciado pelo instalador Inno Setup
 
