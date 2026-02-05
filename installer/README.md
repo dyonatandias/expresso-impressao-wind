@@ -1,451 +1,204 @@
-# 📦 Instalador Profissional - Delivery Print Client v1.4.2
+# Instalador - Expresso Delivery Print Client v2.3.0
 
-**Sistema de instalação automática com dependências**
-
----
-
-## 📋 Visão Geral
-
-Este diretório contém todos os arquivos necessários para criar um **instalador profissional** do Delivery Print Client que:
-
-- ✅ **Instala automaticamente** Visual C++ Redistributable 2015-2022
-- ✅ **Instala automaticamente** .NET Desktop Runtime 6.0
-- ✅ **Cria atalhos** (Desktop + Menu Iniciar)
-- ✅ **Configura auto-start** no Windows (opcional)
-- ✅ **Verifica requisitos** (Windows 10/11 64-bit)
-- ✅ **Desinstalador completo** incluído
+**Sistema de instalacao automatica para Windows**
 
 ---
 
-## 🚀 Como Criar o Instalador (Passo a Passo)
+## Visao Geral
 
-### Pré-requisitos
+Este diretorio contem todos os arquivos necessarios para criar um **instalador profissional** que:
+
+- Copia aplicacao para pasta do usuario (sem precisar de admin)
+- Cria atalhos (Desktop + Menu Iniciar)
+- Configura auto-start no Windows (opcional)
+- Verifica requisitos (Windows 10/11 64-bit)
+- Cria desinstalador completo
+
+**NOTA:** O executavel e self-contained (.NET 6). Nao requer instalacao de runtime separado.
+
+---
+
+## Como Criar o Instalador
+
+### Pre-requisitos
 
 1. **Windows 10/11 64-bit**
-2. **.NET SDK 6.0+** - [Download](https://dotnet.microsoft.com/download)
+2. **.NET SDK 6.0+** - [Download](https://dotnet.microsoft.com/download/dotnet/6.0)
 3. **Inno Setup 6** - [Download](https://jrsoftware.org/isdl.php)
-4. **PowerShell** (como Administrador)
 
 ---
 
-### PASSO 1: Instalar Inno Setup
+### Opcao 1: Script Automatico (RECOMENDADO)
 
-```powershell
-# 1. Baixe Inno Setup 6 de:
-https://jrsoftware.org/isdl.php
+O `COMPILAR_TUDO.bat` na raiz do projeto compila o portatil E o instalador automaticamente:
 
-# 2. Execute o instalador:
-innosetup-6.x.x.exe
-
-# 3. Instale na pasta padrão:
-C:\Program Files (x86)\Inno Setup 6\
+```cmd
+cd windows-print-client-dotnet
+COMPILAR_TUDO.bat
 ```
 
-**Importante:** Marque a opção **"Install Inno Setup Preprocessor"** durante a instalação.
+Se InnoSetup estiver instalado, gera ambos:
+- `ExpressoDeliveryPrintClient.exe` (portatil)
+- `installer\output\ExpressoDeliveryPrintClient-Setup-v2.3.0.exe` (instalador)
 
 ---
 
-### PASSO 2: Baixar Dependências
+### Opcao 2: PowerShell (build-installer.ps1)
 
 ```powershell
-# No PowerShell (como Administrador):
 cd windows-print-client-dotnet\installer
-.\download-dependencies.ps1
-```
-
-**O que este script faz:**
-- 📥 Baixa Visual C++ Redistributable 2015-2022 (x64) (~25 MB)
-- 📥 Baixa .NET Desktop Runtime 6.0 (x64) (~55 MB)
-- 💾 Salva em `installer/dependencies/`
-
-**Saída esperada:**
-```
-✅ Todas as dependências foram baixadas!
-
-Arquivos na pasta 'dependencies':
-   📦 vc_redist.x64.exe - 25.34 MB
-   📦 windowsdesktop-runtime-6.0-win-x64.exe - 54.67 MB
-```
-
----
-
-### PASSO 3: Compilar o Instalador
-
-```powershell
-# No PowerShell (como Administrador):
 .\build-installer.ps1
 ```
 
-**O que este script faz:**
+Este script:
+1. Verifica pre-requisitos (InnoSetup, .NET SDK)
+2. Compila aplicacao .NET em modo Release (self-contained)
+3. Compila instalador com Inno Setup
+4. Gera portatil + instalador
 
-1. ✅ Verifica pré-requisitos (Inno Setup, .NET SDK, dependências)
-2. 🔨 Compila aplicação .NET em modo Release
-3. 📦 Publica como executável standalone (147 MB)
-4. 🔨 Compila instalador com Inno Setup
-5. 💾 Gera instalador em `installer/output/`
+---
 
-**Saída esperada:**
-```
-✅ Instalador compilado com sucesso!
+### Opcao 3: Manual (apenas InnoSetup)
 
-📦 Instalador: DeliveryPrintClient-Setup-v1.4.2.exe
-   Localização: C:\...\installer\output\DeliveryPrintClient-Setup-v1.4.2.exe
-   Tamanho: 230.45 MB
+Se o exe ja esta compilado:
+
+```cmd
+:: 1. Copiar exe para publish/ (referenciado pelo setup.iss)
+mkdir publish
+copy ExpressoDeliveryPrintClient.exe publish\ExpressoDeliveryPrintClient.exe
+
+:: 2. Compilar instalador
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\setup.iss
+
+:: 3. Resultado em:
+dir installer\output\ExpressoDeliveryPrintClient-Setup-v2.3.0.exe
 ```
 
 ---
 
-### PASSO 4: Distribuir o Instalador
-
-```powershell
-# O instalador está em:
-installer\output\DeliveryPrintClient-Setup-v1.4.2.exe
-
-# Distribua este arquivo único para os usuários!
-```
-
-**Como usar (usuário final):**
-1. Executar `DeliveryPrintClient-Setup-v1.4.2.exe` **como Administrador**
-2. Seguir assistente de instalação
-3. Pronto! Aplicativo instalado e configurado
-
----
-
-## 📂 Estrutura de Arquivos
+## Estrutura de Arquivos
 
 ```
 installer/
-├── setup.iss                          # Script Inno Setup (configuração do instalador)
-├── download-dependencies.ps1          # Script para baixar dependências
-├── build-installer.ps1                # Script para compilar instalador
-├── README.md                          # Este arquivo
-├── dependencies/                      # Pasta criada automaticamente
-│   ├── vc_redist.x64.exe             # Visual C++ Redistributable (25 MB)
-│   └── windowsdesktop-runtime-6.0-win-x64.exe  # .NET Desktop Runtime (55 MB)
-└── output/                            # Pasta criada automaticamente
-    └── DeliveryPrintClient-Setup-v1.4.2.exe    # INSTALADOR FINAL (230 MB)
+  setup.iss                          - Script Inno Setup
+  build-installer.ps1                - Script PowerShell para compilar tudo
+  README.md                          - Este arquivo
+  output/                            - Pasta criada automaticamente
+    ExpressoDeliveryPrintClient-Setup-v2.3.0.exe  - INSTALADOR FINAL
 ```
 
 ---
 
-## ⚙️ Configuração do Instalador (setup.iss)
+## O Que o Instalador Faz
 
-### Informações do Aplicativo
-
-```pascal
-#define MyAppName "Delivery Print Client"
-#define MyAppVersion "1.4.2"
-#define MyAppPublisher "Agência Expresso"
-#define MyAppURL "https://delivery2.agenciaexpresso.com.br"
+```
+1. Verifica Windows 10/11 64-bit
+         |
+2. Copia aplicacao para %LOCALAPPDATA%\DeliveryPrintClient
+         |
+3. Cria atalhos (Desktop + Menu Iniciar)
+         |
+4. Configura auto-start (opcional, via Registry)
+         |
+5. Executa aplicativo (opcional)
 ```
 
-### Pasta de Instalação
+### Pasta de Instalacao
 
-```pascal
-DefaultDirName={autopf}\Delivery Print Client
-// C:\Program Files\Delivery Print Client
-```
-
-### Arquivos Incluídos
-
-- ✅ Executável principal (DeliveryPrintClient.exe)
-- ✅ Pasta logoparaapp/ (logos)
-- ✅ Documentação (LEIA-ME.md, REQUISITOS_WINDOWS.md, etc.)
-- ✅ Script de verificação (verificar-requisitos.ps1)
+O instalador usa `{localappdata}\DeliveryPrintClient` (sem precisar de admin):
+- Exemplo: `C:\Users\Usuario\AppData\Local\DeliveryPrintClient`
 
 ### Atalhos Criados
 
-- 📌 Desktop (opcional)
-- 📌 Menu Iniciar
-- 📌 Menu Iniciar → Leia-Me
-- 📌 Menu Iniciar → Verificar Requisitos
-- 📌 Menu Iniciar → Desinstalar
+- Desktop (opcional)
+- Menu Iniciar
+- Menu Iniciar > Desinstalar
 
 ### Auto-Start
 
-```pascal
-Root: HKCU;
-Subkey: "Software\Microsoft\Windows\CurrentVersion\Run";
-ValueName: "Delivery Print Client";
-ValueData: "C:\Program Files\Delivery Print Client\DeliveryPrintClient.exe";
+Se selecionado, adiciona ao Registry:
 ```
-
-Configurado apenas se usuário marcar opção no instalador.
-
----
-
-## 🔍 Verificação de Requisitos Automática
-
-O instalador verifica automaticamente:
-
-### 1. Sistema Operacional
-```pascal
-if not IsWin64 then
-  MsgBox('Requer Windows 10/11 de 64 bits', mbCriticalError, MB_OK);
-```
-
-### 2. Visual C++ Redistributable
-```pascal
-function NeedVCRedist: Boolean;
-// Verifica registro:
-// HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64
-```
-
-Se não instalado → Instala automaticamente de `dependencies/vc_redist.x64.exe`
-
-### 3. .NET Desktop Runtime 6.0
-```pascal
-function NeedDotNetRuntime: Boolean;
-// Executa: dotnet --list-runtimes
-// Verifica se contém: Microsoft.WindowsDesktop.App 6.
-```
-
-Se não instalado → Instala automaticamente de `dependencies/windowsdesktop-runtime-6.0-win-x64.exe`
-
----
-
-## 🛠️ Fluxo de Instalação Completo
-
-```
-┌─────────────────────────────────────────┐
-│ 1. Usuário executa instalador          │
-│    (como Administrador)                 │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│ 2. Verificação de requisitos            │
-│    ✓ Windows 10/11 64-bit?              │
-│    ✓ Permissões de admin?               │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│ 3. Instalação de dependências           │
-│    ✓ Visual C++ Redistributable         │
-│    ✓ .NET Desktop Runtime 6.0           │
-│    (apenas se não instalados)           │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│ 4. Cópia de arquivos                    │
-│    → C:\Program Files\Delivery Print... │
-│    ✓ DeliveryPrintClient.exe            │
-│    ✓ logoparaapp/                       │
-│    ✓ Documentação                       │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│ 5. Criação de atalhos                   │
-│    ✓ Desktop (se selecionado)           │
-│    ✓ Menu Iniciar                       │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│ 6. Configuração de auto-start           │
-│    ✓ Registro no Windows Registry       │
-│    (se selecionado)                     │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│ 7. Conclusão                            │
-│    ✓ Instalação concluída!              │
-│    ✓ Executar aplicativo (opcional)     │
-└─────────────────────────────────────────┘
+HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+  "Delivery Print Client" = "caminho\ExpressoDeliveryPrintClient.exe"
 ```
 
 ---
 
-## 🗑️ Desinstalação
+## Desinstalacao
 
-O instalador cria um **desinstalador completo** que:
+O instalador cria um desinstalador completo:
 
-- ✅ Para processo em execução (`taskkill /F /IM DeliveryPrintClient.exe`)
-- ✅ Remove todos os arquivos de `C:\Program Files\Delivery Print Client\`
-- ✅ Remove atalhos (Desktop + Menu Iniciar)
-- ✅ Remove auto-start do Registry
-- ✅ Remove configurações de `%APPDATA%\DeliveryPrintClient\` (opcional)
-
-**Como desinstalar:**
-
-1. Painel de Controle → Programas → Desinstalar um programa
-2. Selecionar "Delivery Print Client"
+1. Painel de Controle > Programas > Desinstalar
+2. Selecionar "Expresso Delivery Print Client"
 3. Clicar em "Desinstalar"
 
----
-
-## 📊 Tamanhos de Arquivo
-
-| Componente | Tamanho | Descrição |
-|------------|---------|-----------|
-| **vc_redist.x64.exe** | ~25 MB | Visual C++ Redistributable |
-| **.NET Runtime** | ~55 MB | .NET Desktop Runtime 6.0 |
-| **DeliveryPrintClient.exe** | ~147 MB | Aplicativo standalone |
-| **Logos** | ~0.14 MB | 3 arquivos PNG |
-| **Documentação** | ~0.1 MB | Markdown files |
-| **Instalador Final** | **~230 MB** | **Tudo incluído** |
+Remove:
+- Todos os arquivos da pasta de instalacao
+- Atalhos (Desktop + Menu Iniciar)
+- Auto-start do Registry
+- Configuracoes de %APPDATA%\DeliveryPrintClient (opcional)
 
 ---
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
-### Erro: "Inno Setup não encontrado"
+### InnoSetup nao encontrado
 
-**Solução:**
-```powershell
-# Instale Inno Setup 6:
-https://jrsoftware.org/isdl.php
+```cmd
+:: Instale InnoSetup 6:
+:: https://jrsoftware.org/isdl.php
 
-# Verifique instalação:
-Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-# Deve retornar: True
+:: Verifique instalacao:
+dir "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
-### Erro: "Dependências não encontradas"
+### .NET SDK nao encontrado
 
-**Solução:**
-```powershell
-# Execute o script de download:
-.\download-dependencies.ps1
+```cmd
+:: Instale .NET 6.0 SDK:
+:: https://dotnet.microsoft.com/download/dotnet/6.0
 
-# Verifique arquivos:
-ls .\dependencies\
-# Deve mostrar: vc_redist.x64.exe e windowsdesktop-runtime-6.0-win-x64.exe
-```
-
-### Erro: ".NET SDK não encontrado"
-
-**Solução:**
-```powershell
-# Instale .NET 6.0 SDK:
-https://dotnet.microsoft.com/download/dotnet/6.0
-
-# Verifique:
+:: Verifique:
 dotnet --version
-# Exemplo: 6.0.425
 ```
 
-### Instalador gerado mas muito pequeno (< 100 MB)
+### Instalador gerado mas muito pequeno
 
-**Problema:** Dependências não foram incluídas.
+Se o instalador tem menos de 50MB, o exe pode nao ter sido copiado para `publish/`.
 
-**Solução:**
-```powershell
-# Verificar se dependências existem:
-ls .\dependencies\
+```cmd
+:: Verificar:
+dir publish\ExpressoDeliveryPrintClient.exe
 
-# Se não existirem, executar:
-.\download-dependencies.ps1
+:: Se nao existir:
+mkdir publish
+copy ExpressoDeliveryPrintClient.exe publish\ExpressoDeliveryPrintClient.exe
 
-# Recompilar:
-.\build-installer.ps1
+:: Recompilar:
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
 ```
 
 ---
 
-## 🔐 Assinatura Digital (Opcional - Avançado)
+## Personalizacao
 
-Para evitar avisos do Windows SmartScreen, você pode **assinar digitalmente** o instalador.
-
-### Pré-requisitos:
-- Certificado Code Signing (~$300-500/ano)
-- SignTool.exe (Windows SDK)
-
-### Como assinar:
-```powershell
-# Exemplo com certificado PFX:
-signtool sign /f "certificado.pfx" /p "senha" /t http://timestamp.digicert.com "DeliveryPrintClient-Setup-v1.4.2.exe"
-```
-
-**Benefícios:**
-- ✅ Sem avisos do SmartScreen
-- ✅ Aumenta confiança do usuário
-- ✅ Instalação mais rápida
-
-**Custo:** ~$300-500/ano (certificado code signing)
-
----
-
-## 📝 Personalização do Instalador
-
-### Mudar ícone do instalador:
+### Mudar pasta de instalacao
 
 Edite `setup.iss`:
 ```pascal
-SetupIconFile=..\logoparaapp\logo-v2.ico
+DefaultDirName={localappdata}\DeliveryPrintClient
 ```
 
-### Mudar pasta de instalação padrão:
+Opcoes: `{localappdata}`, `{autopf}` (Program Files), `{userdocs}`
+
+### Mudar icone
 
 ```pascal
-DefaultDirName={autopf}\Delivery Print Client
-```
-
-Opções:
-- `{autopf}` = C:\Program Files\
-- `{localappdata}` = C:\Users\Usuario\AppData\Local\
-- `{userdocs}` = C:\Users\Usuario\Documents\
-
-### Adicionar arquivos extras:
-
-```pascal
-[Files]
-Source: "..\meu-arquivo.txt"; DestDir: "{app}"; Flags: ignoreversion
-```
-
-### Mudar mensagens do instalador:
-
-```pascal
-[Messages]
-WelcomeLabel1=Bem-vindo ao Instalador!
-WelcomeLabel2=Este programa instalará o [name] no seu computador.
+SetupIconFile=..\app-icon.ico
 ```
 
 ---
 
-## 🎯 Checklist de Distribuição
-
-Antes de distribuir o instalador, verifique:
-
-- [ ] ✅ Inno Setup 6 instalado
-- [ ] ✅ Dependências baixadas (VC++ e .NET Runtime)
-- [ ] ✅ Aplicação compilada (Release mode)
-- [ ] ✅ Instalador gerado (~230 MB)
-- [ ] ✅ Testado em Windows 10 limpo
-- [ ] ✅ Testado em Windows 11
-- [ ] ✅ Testado instalação completa
-- [ ] ✅ Testado desinstalação
-- [ ] ✅ Auto-start funciona
-- [ ] ✅ Atalhos criados corretamente
-- [ ] ✅ Aplicativo executa após instalação
-
----
-
-## 📞 Suporte
-
-**Problemas com o instalador?**
-
-1. Verifique logs do Inno Setup em `%TEMP%\Setup Log YYYY-MM-DD #XXX.txt`
-2. Execute `verificar-requisitos.ps1` após instalação
-3. Consulte documentação: `REQUISITOS_WINDOWS.md`
-
----
-
-## 🚀 Próximos Passos
-
-1. ✅ Criar instalador com `build-installer.ps1`
-2. ✅ Testar em máquina limpa
-3. ✅ Distribuir para usuários
-4. ✅ Coletar feedback
-5. 📋 Considerar assinatura digital (opcional)
-
----
-
-**Versão:** 1.4.2
-**Data:** 18/11/2025
-**Status:** ✅ Pronto para produção
-
+**Versao:** 2.3.0
+**Data:** 05/02/2026
+**Exe:** Self-contained (.NET 6) - nao requer runtime separado

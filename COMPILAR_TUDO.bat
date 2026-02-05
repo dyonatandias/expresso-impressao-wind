@@ -24,14 +24,14 @@ if %errorLevel%==0 (
 )
 
 :: Limpar builds anteriores
-echo [1/3] Limpando builds anteriores...
+echo [1/4] Limpando builds anteriores...
 if exist "bin\Release" rmdir /S /Q bin\Release >nul 2>&1
 if exist "obj" rmdir /S /Q obj >nul 2>&1
 echo [OK] Limpeza concluida
 echo.
 
 :: Compilar
-echo [2/3] Compilando executavel standalone...
+echo [2/4] Compilando executavel standalone...
 echo       (Aguarde 2-3 minutos)
 echo.
 
@@ -50,12 +50,12 @@ if %errorLevel% neq 0 (
 
 :: Copiar executavel para a raiz
 echo.
-echo [3/3] Copiando executavel para a raiz...
+echo [3/4] Copiando executavel para a raiz...
 
 if exist "bin\Release\net6.0-windows\win-x64\publish\ExpressoDeliveryPrintClient.exe" (
     copy "bin\Release\net6.0-windows\win-x64\publish\ExpressoDeliveryPrintClient.exe" "ExpressoDeliveryPrintClient.exe" >nul 2>&1
-    if %errorLevel%==0 (
-        echo [OK] Executavel copiado!
+    if !errorLevel!==0 (
+        echo [OK] Executavel portatil copiado!
 
         :: Mostrar tamanho
         for %%A in ("ExpressoDeliveryPrintClient.exe") do (
@@ -68,6 +68,46 @@ if exist "bin\Release\net6.0-windows\win-x64\publish\ExpressoDeliveryPrintClient
     )
 ) else (
     echo [ERRO] Executavel nao encontrado
+    echo.
+    pause
+    exit /b 1
+)
+
+:: Compilar instalador (se InnoSetup disponivel)
+echo.
+echo [4/4] Verificando InnoSetup para gerar instalador...
+
+if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" (
+    echo [INFO] InnoSetup 6 encontrado! Gerando instalador...
+    echo.
+
+    :: Copiar exe para publish (referenciado pelo setup.iss)
+    if not exist "publish" mkdir publish
+    copy "ExpressoDeliveryPrintClient.exe" "publish\ExpressoDeliveryPrintClient.exe" >nul 2>&1
+
+    :: Compilar instalador
+    "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Q "installer\setup.iss"
+
+    if !errorLevel!==0 (
+        echo [OK] Instalador gerado em: installer\output\
+        for %%A in ("installer\output\ExpressoDeliveryPrintClient-Setup-v2.3.0.exe") do (
+            set SETUP_SIZE=%%~zA
+        )
+        if defined SETUP_SIZE (
+            set /a SETUP_MB=!SETUP_SIZE! / 1048576
+            echo Tamanho: !SETUP_MB! MB
+        )
+    ) else (
+        echo [AVISO] Falha ao gerar instalador. O executavel portatil esta OK.
+        echo         Verifique se installer\setup.iss esta correto.
+    )
+) else (
+    echo [INFO] InnoSetup nao encontrado. Apenas executavel portatil gerado.
+    echo.
+    echo        Para gerar tambem o instalador (Setup):
+    echo        1. Instale InnoSetup 6: https://jrsoftware.org/isdl.php
+    echo        2. Execute este script novamente
+    echo        Ou use: installer\build-installer.ps1 (PowerShell)
 )
 
 echo.
@@ -75,7 +115,11 @@ echo ========================================
 echo   COMPILACAO CONCLUIDA!
 echo ========================================
 echo.
-echo Executavel: ExpressoDeliveryPrintClient.exe (NESTA PASTA)
+echo Arquivos gerados:
+echo   Portatil: ExpressoDeliveryPrintClient.exe (NESTA PASTA)
+if exist "installer\output\ExpressoDeliveryPrintClient-Setup-v2.3.0.exe" (
+    echo   Setup:    installer\output\ExpressoDeliveryPrintClient-Setup-v2.3.0.exe
+)
 echo.
 echo Proximo passo:
 echo   1. Executar: ExpressoDeliveryPrintClient.exe

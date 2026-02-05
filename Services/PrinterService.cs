@@ -20,10 +20,28 @@ namespace DeliveryPrintClient.Services
         {
             try
             {
-                // Usar impressora específica do job se definida, senão usar padrão
-                string printerToUse = !string.IsNullOrEmpty(job.ImpressoraNome)
-                    ? job.ImpressoraNome
-                    : _printerName;
+                // Resolver impressora com fallback inteligente:
+                // 1. Se servidor enviou nome e existe no Windows → usar
+                // 2. Se servidor enviou nome mas NÃO existe → fallback para impressora local
+                // 3. Se servidor não enviou → usar impressora local
+                string printerToUse;
+                if (!string.IsNullOrEmpty(job.ImpressoraNome))
+                {
+                    var testSettings = new PrinterSettings { PrinterName = job.ImpressoraNome };
+                    if (testSettings.IsValid)
+                    {
+                        printerToUse = job.ImpressoraNome;
+                    }
+                    else
+                    {
+                        LogService.LogWarning($"Impressora '{job.ImpressoraNome}' (servidor) nao encontrada no Windows. Usando impressora local: '{_printerName}'");
+                        printerToUse = _printerName;
+                    }
+                }
+                else
+                {
+                    printerToUse = _printerName;
+                }
 
                 if (string.IsNullOrEmpty(printerToUse))
                 {
