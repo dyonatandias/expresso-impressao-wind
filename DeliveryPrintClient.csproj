@@ -8,13 +8,13 @@
     <Nullable>enable</Nullable>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <AssemblyName>ExpressoDeliveryPrintClient</AssemblyName>
-    <Version>2.2.0</Version>
+    <Version>2.3.0</Version>
     <Authors>Agência Expresso</Authors>
     <Product>Expresso Delivery Print Client</Product>
-    <Description>Cliente de impressão para Windows - Sistema Delivery 2.0 (Updated 05/02/2026 - v2.2.0)</Description>
+    <Description>Cliente de impressão para Windows - Sistema Delivery 2.0 (Updated 05/02/2026 - v2.3.0)</Description>
     <Copyright>Copyright © 2026 Agência Expresso</Copyright>
-    <FileVersion>2.2.0.0</FileVersion>
-    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.3.0.0</FileVersion>
+    <AssemblyVersion>2.3.0.0</AssemblyVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>app-icon.ico</ApplicationIcon>
   </PropertyGroup>

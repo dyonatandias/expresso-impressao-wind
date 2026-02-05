@@ -2,7 +2,7 @@
 
 Open-source thermal print client for Windows. Connects to the Expresso Delivery system and automatically prints orders on thermal printers.
 
-**Version:** 2.2.0
+**Version:** 2.3.0
 **License:** MIT
 **Platform:** Windows 10+ (64-bit)
 **Framework:** .NET 6 (WinForms)
@@ -121,6 +121,12 @@ Supported paper widths: **58mm**, **76mm**, **80mm**
 ---
 
 ## Changelog
+
+### v2.3.0 (05/02/2026)
+- Built-in auto-update: download and install new versions from within the app
+- Progress bar during update download
+- Force update support (mandatory updates)
+- Decline option (won't ask again until next version)
 
 ### v2.2.0 (05/02/2026)
 - Fix: HealthCheckService URL not updating on config save

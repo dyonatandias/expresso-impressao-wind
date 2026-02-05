@@ -1,5 +1,5 @@
 ; ================================================================
-; Inno Setup Script - Expresso Delivery Print Client v2.2.0
+; Inno Setup Script - Expresso Delivery Print Client v2.3.0
 ; ================================================================
 ; Instalador profissional para o cliente de impressão Windows
 ; O aplicativo é self-contained (.NET 6) - não requer runtime
@@ -7,7 +7,7 @@
 ; ================================================================
 
 #define MyAppName "Expresso Delivery Print Client"
-#define MyAppVersion "2.2.0"
+#define MyAppVersion "2.3.0"
 #define MyAppPublisher "Agencia Expresso"
 #define MyAppURL "https://delivery2.agenciaexpresso.com.br"
 #define MyAppExeName "ExpressoDeliveryPrintClient.exe"

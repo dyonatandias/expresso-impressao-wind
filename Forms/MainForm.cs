@@ -26,6 +26,9 @@ namespace DeliveryPrintClient.Forms
         // v2.0.0: Contador de jobs processados
         private int _jobsProcessed = 0;
 
+        // v2.3.0: Versao recusada pelo usuario (evita perguntar de novo)
+        private string? _updateDeclinedVersion = null;
+
         // v2.0.0: P/Invoke para liberar HICON handles
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool DestroyIcon(IntPtr handle);
@@ -190,7 +193,8 @@ namespace DeliveryPrintClient.Forms
         }
 
         /// <summary>
-        /// v2.1.0: Verifica atualização no servidor
+        /// v2.1.0: Verifica atualizacao no servidor
+        /// v2.3.0: Suporte a auto-download e declined version
         /// </summary>
         private async Task CheckForUpdateAsync()
         {
@@ -200,6 +204,10 @@ namespace DeliveryPrintClient.Forms
 
                 if (updateInfo != null && updateInfo.UpdateAvailable)
                 {
+                    // v2.3.0: Nao perguntar de novo se usuario ja recusou esta versao
+                    if (updateInfo.LatestVersion == _updateDeclinedVersion && !updateInfo.ForceUpdate)
+                        return;
+
                     ShowUpdateNotification(updateInfo);
                 }
             }
@@ -209,6 +217,9 @@ namespace DeliveryPrintClient.Forms
             }
         }
 
+        /// <summary>
+        /// v2.3.0: Mostra dialog de atualizacao com opcao de auto-download
+        /// </summary>
         private void ShowUpdateNotification(UpdateCheckResponse updateInfo)
         {
             if (this.InvokeRequired)
@@ -226,24 +237,175 @@ namespace DeliveryPrintClient.Forms
 
             LogMessage($"Atualizacao disponivel: v{updateInfo.LatestVersion} - {updateInfo.ReleaseNotes}");
 
-            // Informar ao usuário (download via instalador)
             string downloadUrl = updateInfo.DownloadUrl;
             if (!downloadUrl.StartsWith("http"))
             {
                 downloadUrl = $"{_config.ApiUrl}{downloadUrl}";
             }
 
-            MessageBox.Show(
+            // Force update: nao da opcao de recusar
+            if (updateInfo.ForceUpdate)
+            {
+                MessageBox.Show(
+                    $"Uma atualizacao obrigatoria sera instalada.\n\n" +
+                    $"Versao atual: v{UpdateService.CurrentVersion}\n" +
+                    $"Nova versao: v{updateInfo.LatestVersion}\n\n" +
+                    $"{updateInfo.ReleaseNotes}",
+                    "Atualizacao Obrigatoria",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                _ = PerformAutoUpdateAsync(updateInfo, downloadUrl);
+                return;
+            }
+
+            var result = MessageBox.Show(
                 $"Nova versao disponivel!\n\n" +
                 $"Versao atual: v{UpdateService.CurrentVersion}\n" +
                 $"Nova versao: v{updateInfo.LatestVersion}\n\n" +
-                $"{updateInfo.ReleaseNotes}\n\n" +
-                "Baixe o instalador atualizado no painel administrativo\n" +
-                "ou acesse o link de download no navegador.",
+                (!string.IsNullOrEmpty(updateInfo.ReleaseNotes) ? $"{updateInfo.ReleaseNotes}\n\n" : "") +
+                "Deseja atualizar automaticamente agora?\n\n" +
+                "(O aplicativo sera encerrado durante a atualizacao\n" +
+                "e reiniciado automaticamente.)",
                 "Atualizacao Disponivel",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
             );
+
+            if (result == DialogResult.Yes)
+            {
+                _ = PerformAutoUpdateAsync(updateInfo, downloadUrl);
+            }
+            else
+            {
+                _updateDeclinedVersion = updateInfo.LatestVersion;
+                LogMessage($"Atualizacao v{updateInfo.LatestVersion} recusada pelo usuario");
+            }
+        }
+
+        /// <summary>
+        /// v2.3.0: Baixa atualizacao com barra de progresso e aplica
+        /// </summary>
+        private async Task PerformAutoUpdateAsync(UpdateCheckResponse updateInfo, string downloadUrl)
+        {
+            Form? progressForm = null;
+            ProgressBar? progressBar = null;
+            Label? lblProgress = null;
+            Label? lblBytes = null;
+
+            try
+            {
+                progressForm = new Form
+                {
+                    Text = "Atualizando...",
+                    Size = new Size(450, 180),
+                    StartPosition = FormStartPosition.CenterParent,
+                    FormBorderStyle = FormBorderStyle.FixedDialog,
+                    MaximizeBox = false,
+                    MinimizeBox = false,
+                    ControlBox = false,
+                    BackColor = Color.White
+                };
+
+                lblProgress = new Label
+                {
+                    Text = "Baixando atualizacao...",
+                    Location = new Point(20, 20),
+                    Size = new Size(400, 30),
+                    Font = new Font("Segoe UI", 10F)
+                };
+
+                progressBar = new ProgressBar
+                {
+                    Location = new Point(20, 60),
+                    Size = new Size(400, 30),
+                    Style = ProgressBarStyle.Continuous,
+                    Minimum = 0,
+                    Maximum = 100
+                };
+
+                lblBytes = new Label
+                {
+                    Text = "",
+                    Location = new Point(20, 100),
+                    Size = new Size(400, 25),
+                    Font = new Font("Segoe UI", 9F),
+                    ForeColor = Color.Gray
+                };
+
+                progressForm.Controls.Add(lblProgress);
+                progressForm.Controls.Add(progressBar);
+                progressForm.Controls.Add(lblBytes);
+
+                progressForm.Show(this);
+                this.Enabled = false;
+
+                var lblProgressRef = lblProgress;
+                var progressBarRef = progressBar;
+                var lblBytesRef = lblBytes;
+                var formRef = progressForm;
+
+                var progress = new Progress<(long received, long total)>(p =>
+                {
+                    if (formRef.IsDisposed) return;
+
+                    if (p.total > 0)
+                    {
+                        int percent = (int)((p.received * 100) / p.total);
+                        progressBarRef.Value = Math.Min(percent, 100);
+                        lblProgressRef.Text = $"Baixando atualizacao... {percent}%";
+                        lblBytesRef.Text = $"{p.received / 1024 / 1024}MB de {p.total / 1024 / 1024}MB";
+                    }
+                    else
+                    {
+                        progressBarRef.Style = ProgressBarStyle.Marquee;
+                        lblProgressRef.Text = $"Baixando... ({p.received / 1024 / 1024}MB)";
+                    }
+                });
+
+                LogMessage("Iniciando download da atualizacao...");
+
+                string? downloadedPath = await _updateService.DownloadUpdateAsync(
+                    downloadUrl,
+                    updateInfo.LatestVersion,
+                    progress
+                );
+
+                if (downloadedPath == null)
+                    throw new Exception("Download retornou caminho nulo");
+
+                LogMessage($"Download concluido: {downloadedPath}");
+                lblProgress.Text = "Aplicando atualizacao...";
+                progressBar.Value = 100;
+
+                await Task.Delay(500);
+
+                progressForm.Close();
+                progressForm.Dispose();
+                progressForm = null;
+
+                UpdateService.ApplyUpdate(downloadedPath);
+            }
+            catch (Exception ex)
+            {
+                this.Enabled = true;
+                if (progressForm != null && !progressForm.IsDisposed)
+                {
+                    progressForm.Close();
+                    progressForm.Dispose();
+                }
+
+                LogMessage($"Erro na atualizacao automatica: {ex.Message}");
+                LogService.LogError("Erro na atualizacao automatica", ex);
+
+                MessageBox.Show(
+                    $"Erro ao atualizar:\n\n{ex.Message}\n\n" +
+                    "Voce pode baixar manualmente no painel administrativo.",
+                    "Erro na Atualizacao",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
         }
 
         /// <summary>
