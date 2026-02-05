@@ -61,7 +61,7 @@ namespace DeliveryPrintClient.Services
                 _startTime = DateTime.Now;
 
                 LogInfo("=".PadRight(80, '='));
-                LogInfo($"Expresso Delivery Print Client v2.1.0 - Iniciado em {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+                LogInfo($"Expresso Delivery Print Client v2.2.0 - Iniciado em {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
                 LogInfo($"Logs em: {LogDirectory}");
                 LogInfo($"Config em: {ConfigService.GetConfigDir()}");
                 LogInfo("=".PadRight(80, '='));

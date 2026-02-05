@@ -1,4 +1,4 @@
-# Expresso Delivery Print Client v2.1.0
+# Expresso Delivery Print Client v2.2.0
 
 Cliente de impressao termica para Windows - Sistema Expresso Delivery
 
@@ -10,7 +10,7 @@ Cliente de impressao termica para Windows - Sistema Expresso Delivery
 
 Baixe no painel admin: **Admin > Impressoras > Windows Clients > Download**
 
-Ou use o installer: `ExpressoDeliveryPrintClient-Setup-v2.1.0.exe`
+Ou use o installer: `ExpressoDeliveryPrintClient-Setup-v2.2.0.exe`
 
 ### Opcao 2: Compilar do Codigo Fonte
 
@@ -128,7 +128,15 @@ Sistema Delivery → Pedido criado → Job entra na fila
 
 ## Historico de Versoes
 
-### v2.1.0 (02/02/2026) - Atual
+### v2.2.0 (05/02/2026) - Atual
+- Fix: HealthCheckService URL nao atualizava ao salvar config
+- Fix: Colunas SQL corrigidas no PUT jobs (erro_mensagem, processed_at)
+- Fix: editingId truthy corrigido na criacao de regras
+- Fix: Cascade force delete para Windows Clients com impressoras
+- Fix: $queryRawUnsafe array param em impressoras/[id]
+- PE subsystem corrigido (GUI em vez de Console)
+
+### v2.1.0 (02/02/2026)
 - Suporte a auto-update
 - Servico de instalacao
 - Distribuicao via ZIP de codigo fonte
@@ -156,6 +164,6 @@ Copyright (c) 2025-2026 Agencia Expresso
 
 ---
 
-**Versao**: 2.1.0
-**Data**: 02/02/2026
+**Versao**: 2.2.0
+**Data**: 05/02/2026
 **Website**: https://delivery2.agenciaexpresso.com.br

@@ -11,7 +11,7 @@ namespace DeliveryPrintClient.Services
     /// </summary>
     public class UpdateService
     {
-        public const string CurrentVersion = "2.1.0";
+        public const string CurrentVersion = "2.2.0";
 
         private readonly AppConfig _config;
         private readonly ApiService _apiService;
